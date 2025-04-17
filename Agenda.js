@@ -146,6 +146,7 @@ export default function App() {
         markedDates={getMarkedDates()}
         onDayPress={handleDayPress}
         style={styles.calendar}
+        monthFormat={'yyyy-MM'}  // Exibe o ano e o mês como número (ex: 2025-04)
       />
       {selectedDate && renderAppointments()}
 
@@ -250,10 +251,7 @@ const styles = StyleSheet.create({
   submitButtonText: { color: '#FFFFFF', textAlign: 'center', fontWeight: 'bold' },
   closeButton: { paddingVertical: 12, backgroundColor: '#FF6347', borderRadius: 10 },
   closeButtonText: { color: '#FFFFFF', textAlign: 'center', fontWeight: 'bold' },
-  timeListContainer: {
-    flexGrow: 1, // Garante que o conteúdo do ScrollView se expanda quando necessário
-    paddingBottom: 20,
-  },
+  timeListContainer: { flexGrow: 1, paddingBottom: 20 },
   timeButton: { padding: 12, backgroundColor: '#87CEEB', borderRadius: 10, margin: 8 },
   timeButtonText: { color: '#FFFFFF', fontWeight: 'bold', textAlign: 'center' },
   appointment: { backgroundColor: '#FFFFFF', padding: 20, marginVertical: 5, borderRadius: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4 },

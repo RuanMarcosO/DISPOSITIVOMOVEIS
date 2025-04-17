@@ -1,8 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, StyleSheet, Text, View, KeyboardAvoidingView, TextInput, Image } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, View, TextInput, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Importando AsyncStorage
+import axios from 'axios';
 
 export default function TelaLogin() {
   const navigation = useNavigation();
@@ -14,26 +14,24 @@ export default function TelaLogin() {
       alert('Informe seus dados!');
       return;
     }
-  
+
     try {
-      // Recuperando email e senha armazenados no AsyncStorage
-      const storedEmail = await AsyncStorage.getItem('@userEmail');
-      const storedSenha = await AsyncStorage.getItem('@userSenha');
-  
-      // Verificando os dados armazenados
-      console.log('Dados armazenados no login:', { storedEmail, storedSenha });
-      console.log('Dados inseridos no login:', { email, senha });
-  
-      // Comparando os dados inseridos com os armazenados
-      if (email === storedEmail && senha === storedSenha) {
+      // Envia os dados para a API
+      const response = await axios.post('http://192.168.0.109/api-condominio/login.php', {
+        email,
+        senha,
+      });
+
+      // Verifica se o login foi bem-sucedido
+      if (response.data.success) {
         alert('Login bem-sucedido');
-        navigation.navigate('Agenda'); // Navegar para a tela Agenda
+        navigation.navigate('Agenda'); // Navega para a tela de Agenda
       } else {
-        alert('Usuário e/ou Senha inválidos');
+        alert(response.data.message); // Exibe a mensagem de erro retornada do PHP
       }
     } catch (error) {
-      alert('Erro ao realizar o login');
-      console.error('Erro ao realizar o login:', error); // Log para depuração
+      alert('Erro ao realizar login.');
+      console.error('Erro no login:', error);
     }
   };
 
@@ -42,7 +40,6 @@ export default function TelaLogin() {
       <Image style={styles.imagem} resizeMode="stretch" source={require('./Imagens/logo.png')} />
       
       <Text style={styles.formTitle}>TRD{"\n"}Gestão das Áreas Condominiais</Text>
-      <Text style={styles.formSubtitle}></Text>
 
       <TextInput
         style={styles.formInput}
@@ -69,7 +66,6 @@ export default function TelaLogin() {
         <Text style={styles.textButton}>Login</Text>
       </TouchableOpacity>
 
-      {/* Alteração no botão Cadastre-se */}
       <TouchableOpacity style={styles.formButton2} onPress={() => navigation.navigate('CadAlunos')}>
         <Text style={styles.textButton}>Cadastre-se</Text>
       </TouchableOpacity>
@@ -101,14 +97,6 @@ const styles = StyleSheet.create({
     color: '#006f9e',
     textAlign: 'center',
     marginBottom: 20,
-  },
-
-  formSubtitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#00b0ff',
-    textAlign: 'center',
-    marginBottom: 40,
   },
 
   formInput: {

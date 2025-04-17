@@ -17,7 +17,7 @@ export default function CadAlunos() {
     } else {
       try {
         // Enviando dados para o backend
-        const response = await axios.post('http://192.168.0.109:3000/gravar', {
+        const response = await axios.post('http://192.168.0.109/api-condominio/gravar.php', {
           nome,
           email,
           senha
