@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, FlatList, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
+  const [token, setToken] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedArea, setSelectedArea] = useState('');
@@ -19,10 +21,16 @@ export default function App() {
   const areas = ['Piscina', 'Salão de Festas', 'Churrasqueira', 'Quadra de Esportes'];
   const availableTimes = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',];
 
-  const loadAppointments = async () => {
+  const loadToken = async() => {
+    const storagetoken = JSON.parse(await AsyncStorage.getItem("@token"));
+    setToken(storagetoken);
+    loadAppointments(storagetoken);
+  }
+
+  const loadAppointments = async (token) => {
     try {
-      const storedAppointments = await AsyncStorage.getItem('@Arealist');
-      setAppointments(storedAppointments ? JSON.parse(storedAppointments) : {});
+      const response = await axios.get('http://192.168.0.109/api-condominio/agendamentos.php?token='+token);
+      setAppointments(response?.data?.data ? response.data.data : {});
     } catch (e) {
       console.error('Erro ao carregar agendamentos', e);
     }
@@ -30,7 +38,15 @@ export default function App() {
 
   const saveAppointments = async (appointments) => {
     try {
-      await AsyncStorage.setItem('@Arealist', JSON.stringify(appointments));
+       let postdata = [];
+       for (let key in appointments) {
+         for (let appointment of appointments[key]) {
+          postdata.push({...appointment, data: key});
+         }
+       }
+       const response = await axios.post('http://192.168.0.109/api-condominio/agendar.php?token='+token, {
+        appointments: postdata
+      });
     } catch (e) {
       console.error('Erro ao salvar agendamentos', e);
     }
@@ -60,7 +76,7 @@ export default function App() {
       return;
     }
 
-    newAppointments[selectedDate].push({ area: selectedArea, details: appointmentDetails, time: selectedTime, password, key: appointmentKey });
+    newAppointments[selectedDate].push({ area: selectedArea, details: appointmentDetails, time: selectedTime, key: appointmentKey, password: password });
     setAppointments(newAppointments);
     saveAppointments(newAppointments);
     resetForm();
@@ -137,7 +153,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadAppointments();
+    loadToken();
   }, []);
 
   return (
@@ -261,4 +277,4 @@ const styles = StyleSheet.create({
   appointmentDetailsContainer: { marginBottom: 15 },
   deleteButton: { marginTop: 10, backgroundColor: '#FF6347', padding: 8, borderRadius: 8 },
   deleteButtonText: { color: '#FFFFFF', fontWeight: 'bold', textAlign: 'center' },
-});
+}); 

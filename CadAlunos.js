@@ -5,32 +5,57 @@ import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Importando AsyncStorage
 import axios from 'axios'; 
 
+// Função para validar o formato do email
+const validarEmail = (email) => {
+  const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+  return regex.test(email);
+};
+
 export default function CadAlunos() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [nome, setNome] = useState('');
+  const [loading, setLoading] = useState(false); // Estado de carregamento
   const navigation = useNavigation();
 
   const cadastro = async () => {
     if (nome === '' || email === '' || senha === '') {
       alert('Preencha todos os campos!');
-    } else {
-      try {
-        // Enviando dados para o backend
-        const response = await axios.post('http://192.168.0.109/api-condominio/gravar.php', {
-          nome,
-          email,
-          senha
-        });
-  
-        alert(response.data.message);
-        navigation.navigate('TelaLogin'); // Navegar para a tela de login
-      } catch (error) {
-        alert('Erro ao salvar cadastro.');
-        console.error('Erro ao salvar cadastro:', error);
+      return;
+    }
+
+    if (!validarEmail(email)) {
+      alert('Email inválido!');
+      return;
+    }
+
+    try {
+      setLoading(true); // Ativa o estado de carregamento
+      // Enviando dados para o backend
+      const response = await axios.post('http://192.168.0.109/api-condominio/gravar.php', {
+        nome,
+        email,
+        senha
+      });
+
+      // Supondo que o ID do usuário esteja na resposta
+      const { userId } = response.data; 
+
+      if (userId) {
+        // Armazenando o ID do usuário no AsyncStorage
+        await AsyncStorage.setItem('@userId', userId.toString());
       }
+
+      alert(response.data.message);
+      navigation.navigate('TelaLogin'); // Navegar para a tela de login
+    } catch (error) {
+      alert('Erro ao salvar cadastro.');
+      console.error('Erro ao salvar cadastro:', error);
+    } finally {
+      setLoading(false); // Desativa o estado de carregamento
     }
   };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -71,8 +96,11 @@ export default function CadAlunos() {
       <TouchableOpacity
         style={styles.Button}
         onPress={cadastro}
+        disabled={loading} // Desabilita o botão enquanto carrega
       >
-        <Text style={styles.textButton}>Cadastrar</Text>
+        <Text style={styles.textButton}>
+          {loading ? 'Cadastrando...' : 'Cadastrar'}
+        </Text>
       </TouchableOpacity>
     </View>
   );

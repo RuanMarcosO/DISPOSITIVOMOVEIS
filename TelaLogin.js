@@ -3,6 +3,7 @@ import { TouchableOpacity, StyleSheet, Text, View, TextInput, Image } from 'reac
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TelaLogin() {
   const navigation = useNavigation();
@@ -25,6 +26,8 @@ export default function TelaLogin() {
       // Verifica se o login foi bem-sucedido
       if (response.data.success) {
         alert('Login bem-sucedido');
+        await AsyncStorage.setItem('@token', JSON.stringify(response.data.hash));
+        console.log(response.data);
         navigation.navigate('Agenda'); // Navega para a tela de Agenda
       } else {
         alert(response.data.message); // Exibe a mensagem de erro retornada do PHP
